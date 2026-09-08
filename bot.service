@@ -1,0 +1,35 @@
+[Unit]
+Description=Challenge bot (видеокружки)
+Documentation=https://github.com/Amirhan0/goats-bot
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=challenge
+Group=challenge
+WorkingDirectory=/opt/challenge-bot
+Environment=PYTHONUNBUFFERED=1
+ExecStart=/opt/challenge-bot/.venv/bin/python -m bot
+
+Restart=always
+RestartSec=5
+# Не сдаваться при частых падениях: 10 попыток за 5 минут, дальше пауза.
+StartLimitIntervalSec=300
+StartLimitBurst=10
+
+# Логи уходят в journald (bot пишет в stdout)
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=challenge-bot
+
+# Базовая изоляция. БД и бэкапы лежат в /var/lib/challenge-bot —
+# каталог должен быть доступен на запись пользователю challenge.
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+ProtectHome=true
+ReadWritePaths=/var/lib/challenge-bot
+
+[Install]
+WantedBy=multi-user.target
