@@ -464,6 +464,12 @@ async def cmd_setclub(
         club.checkins_thread_id = thread
     elif field in {"judges", "судьи"}:
         club.judges_chat_id = message.chat.id
+    elif field in {"challenge", "челлендж"}:
+        flag = value.lower()
+        if flag not in {"on", "off", "вкл", "выкл"}:
+            await message.answer(texts.SETCLUB_CHALLENGE_USAGE)
+            return
+        club.challenge_enabled = flag in {"on", "вкл"}
     else:
         await message.answer(texts.setclub_help(club.title, club.challenge_task, club.prizes))
         return
@@ -473,4 +479,6 @@ async def cmd_setclub(
         target_type="club", target_id=club.id, payload={"field": field},
     )
     await session.commit()
-    await message.answer(texts.setclub_done(field, thread, message.chat.id))
+    await message.answer(
+        texts.setclub_done(field, thread, message.chat.id, club.challenge_enabled)
+    )

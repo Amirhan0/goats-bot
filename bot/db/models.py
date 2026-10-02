@@ -124,6 +124,9 @@ class Club(Base):
     # Призы вообще нельзя делать общими: это чужие обещания чужим людям.
     # Пусто — блок призов в правилах просто не показывается.
     prizes: Mapped[str] = mapped_column(Text, default="")
+    # Челлендж можно выключить, не трогая тренировки и приходы: бот перестаёт
+    # принимать кружки и постить про них, а накопленные данные остаются.
+    challenge_enabled: Mapped[bool] = mapped_column(Boolean, default=True)
 
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, index=True)
     created_at: Mapped[datetime] = mapped_column(UTCDateTime, default=_utcnow)

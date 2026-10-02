@@ -37,6 +37,7 @@ async def create(
     admin_ids: list[int] | None = None,
     challenge_task: str = "",
     prizes: str = "",
+    challenge_enabled: bool = True,
 ) -> Club:
     club = Club(
         title=title,
@@ -49,6 +50,7 @@ async def create(
         admin_ids=admin_ids or [],
         challenge_task=challenge_task,
         prizes=prizes,
+        challenge_enabled=challenge_enabled,
     )
     session.add(club)
     await session.flush()

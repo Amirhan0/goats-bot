@@ -89,6 +89,8 @@ class Settings(BaseSettings):
     club_name: str = Field(default="GOATS", alias="CLUB_NAME")
     # Не из .env: у каждого клуба свой текст, см. settings_for_club().
     prizes: str = ""
+    # Общее значение по умолчанию; у клуба — своё, см. settings_for_club().
+    challenge_enabled: bool = Field(default=True, alias="CHALLENGE_ENABLED")
     # Не из .env: проставляется на копии настроек под конкретный клуб,
     # см. settings_for_club(). У глобального экземпляра всегда None.
     active_club_id: int | None = None
@@ -294,6 +296,7 @@ def settings_for_club(settings: Settings, club: "Club") -> Settings:
             "club_name": club.title or settings.club_name,
             "challenge_task": club.challenge_task or settings.challenge_task,
             "prizes": club.prizes,
+            "challenge_enabled": club.challenge_enabled,
             "participants_chat_id": club.chat_id,
             "participants_thread_id": club.participants_thread_id,
             "trainings_chat_id": club.chat_id,

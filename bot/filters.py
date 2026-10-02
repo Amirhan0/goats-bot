@@ -49,7 +49,7 @@ class InParticipantsChat(BaseFilter):
 
     async def __call__(self, event: TelegramObject, **data: Any) -> bool:
         settings: Settings | None = data.get("settings")
-        if settings is None:
+        if settings is None or not settings.challenge_enabled:
             return False
         thread = getattr(event, "message_thread_id", None)
         return settings.in_participants_thread(_chat_id(event) or 0, thread)

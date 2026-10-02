@@ -1052,11 +1052,20 @@ def setclub_help(title: str, task: str, prizes: str) -> str:
         "<code>/setclub circles</code> — сюда присылают кружки\n"
         "<code>/setclub trainings</code> — сюда постятся тренировки\n"
         "<code>/setclub checkins</code> — сюда шлют скриншоты Стравы\n"
-        "<code>/setclub judges</code> — этот чат станет чатом судей"
+        "<code>/setclub judges</code> — этот чат станет чатом судей\n\n"
+        "<code>/setclub challenge off</code> / <code>on</code> — выключить или "
+        "включить челлендж с кружками"
     )
 
 
-def setclub_done(field: str, thread_id: int, chat_id: int) -> str:
+def setclub_done(field: str, thread_id: int, chat_id: int, challenge_on: bool = True) -> str:
+    if field in {"challenge", "челлендж"}:
+        return (
+            "✅ Челлендж включён." if challenge_on
+            else "⏸ Челлендж выключен: кружки не принимаются, утренних постов, "
+                 "напоминаний и итогов дня не будет. Тренировки и приходы работают. "
+                 "Данные целы — включить обратно: <code>/setclub challenge on</code>"
+        )
     where = {
         "circles": "кружки", "кружки": "кружки",
         "trainings": "тренировки", "тренировки": "тренировки",
@@ -1068,3 +1077,7 @@ def setclub_done(field: str, thread_id: int, chat_id: int) -> str:
     if field in {"judges", "судьи"}:
         return f"✅ Чат судей: <code>{chat_id}</code>."
     return "✅ Сохранил."
+
+
+CHALLENGE_OFF = "⏸ Челлендж с кружками сейчас на паузе."
+SETCLUB_CHALLENGE_USAGE = "Использование: <code>/setclub challenge off</code> или <code>on</code>"

@@ -57,6 +57,9 @@ async def cmd_start(
     # в ночном списке «Пропустили».
     if not settings.in_participants_thread(message.chat.id, message.message_thread_id):
         return
+    if not settings.challenge_enabled:
+        await message.reply(texts.CHALLENGE_OFF)
+        return
 
     existing = await participations_repo.get(session, user.id, challenge.id)
     day = current_day_number(
@@ -98,6 +101,10 @@ async def cb_join(
         if not settings.in_participants_thread(chat.id, thread):
             await callback.answer(texts.WRONG_CHAT, show_alert=True)
             return
+
+    if not settings.challenge_enabled:
+        await callback.answer(texts.CHALLENGE_OFF, show_alert=True)
+        return
 
     result = await participation_service.join(session, settings, user, challenge)
     if not result.created:

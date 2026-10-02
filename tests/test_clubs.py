@@ -183,3 +183,20 @@ async def test_task_falls_back_to_global(session, settings):
 
     assert settings_for_club(settings, own).challenge_task == "берпи 30 раз"
     assert settings_for_club(settings, empty).challenge_task == settings.challenge_task
+
+
+async def test_disabled_challenge_ignores_circles_and_skips_jobs(session, settings, bot):
+    """Выключенный челлендж: кружки не наши, задачи челленджа молчат."""
+    from types import SimpleNamespace
+
+    from bot.filters import InParticipantsChat
+    from bot.scheduler import jobs
+
+    club = await _club(session, -100555, "Пауза", challenge_enabled=False)
+    scoped = settings_for_club(settings, club)
+    circle = SimpleNamespace(chat=SimpleNamespace(id=-100555), message_thread_id=None)
+
+    assert not await InParticipantsChat()(circle, settings=scoped)
+    await jobs.job_morning_post(bot, scoped)
+    await jobs.job_reminder(bot, scoped)
+    assert bot.calls == []  # ни одного поста в чат

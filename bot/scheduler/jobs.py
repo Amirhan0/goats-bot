@@ -47,10 +47,24 @@ logger = logging.getLogger(__name__)
 _last_report: dict[int | None, day_close_service.CloseReport | None] = {}
 
 
+def challenge_job(func):
+    """Задача челленджа: у клуба с выключенным челленджем не делает ничего.
+    Тренировки и приходы этим не гасятся — у них свои задачи."""
+
+    async def runner(bot: Bot, settings: Settings) -> None:
+        if not settings.challenge_enabled:
+            return
+        await func(bot, settings)
+
+    runner.__name__ = func.__name__
+    return runner
+
+
 def _yesterday(settings: Settings) -> date:
     return local_day_for(now_utc(), settings.tz, settings.day_boundary_hour) - timedelta(days=1)
 
 
+@challenge_job
 async def job_generate_code(bot: Bot, settings: Settings) -> None:
     """Через 2 минуты после смены дня — слово на новый день. Сдавать можно
     сразу после границы, поэтому слово нужно раньше утреннего поста."""
@@ -64,6 +78,7 @@ async def job_generate_code(bot: Bot, settings: Settings) -> None:
         await daily_code_service.ensure_code(session, challenge, day_date, settings)
 
 
+@challenge_job
 async def job_morning_post(bot: Bot, settings: Settings) -> None:
     """09:00 — пост дня: задание, слово дня, дедлайн, напоминание про зачёт.
     Выходит всегда, даже если слово дня выключено: главное здесь — челлендж."""
@@ -90,6 +105,7 @@ async def job_morning_post(bot: Bot, settings: Settings) -> None:
     )
 
 
+@challenge_job
 async def job_reminder(bot: Bot, settings: Settings) -> None:
     """21:00 — напоминание тем, кто ещё не сдал. Здесь пинги уместны."""
     async with session_scope() as session:
@@ -115,6 +131,7 @@ async def job_reminder(bot: Bot, settings: Settings) -> None:
     await announce_service.post_to_chat(bot, settings, texts.reminder(day, deadline, mentions))
 
 
+@challenge_job
 async def job_watch_queue(bot: Bot, settings: Settings) -> None:
     """Каждые 10 минут досылает карточки, которые не доехали до судей.
 
@@ -131,6 +148,7 @@ async def job_watch_queue(bot: Bot, settings: Settings) -> None:
         await submissions_service.resend_missing_cards(session, bot, settings, challenge.id)
 
 
+@challenge_job
 async def job_close_day(bot: Bot, settings: Settings) -> None:
     """На границе суток — фиксация пропусков и обнуление серий за день."""
     async with session_scope() as session:
@@ -139,6 +157,7 @@ async def job_close_day(bot: Bot, settings: Settings) -> None:
         )
 
 
+@challenge_job
 async def job_daily_digest(bot: Bot, settings: Settings) -> None:
     """Сразу после смены дня — итоги вчера постом в беседу."""
     day_date = _yesterday(settings)
@@ -193,6 +212,7 @@ async def job_daily_digest(bot: Bot, settings: Settings) -> None:
     _last_report.pop(settings.active_club_id, None)
 
 
+@challenge_job
 async def job_weekly_digest(bot: Bot, settings: Settings) -> None:
     """Суббота, 12:00 — срез за последние 7 дней. Месячный зачёт длинный,
     недельная сводка держит его в поле зрения."""
